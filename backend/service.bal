@@ -1,11 +1,11 @@
 import ballerina/io;
 import ballerinax/aws.dynamodb;
-import ballerina/os;
+
 
 dynamodb:ConnectionConfig amazonDynamodbConfig = {
         awsCredentials: {
-            accessKeyId: os:getEnv("ACCESS_KEY_ID"),
-            secretAccessKey: os:getEnv("SECRET_ACCESS_KEY")
+            accessKeyId: "AKIA3FLD32Q3TKYCQB5D",
+            secretAccessKey: "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"
         },
         region: "us-east-1"
     };
