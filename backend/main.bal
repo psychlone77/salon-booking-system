@@ -7,7 +7,34 @@ import ballerina/persist as _;
         allowOrigins: ["*"]
     }
 }
+
+
 service /users on new http:Listener(9090) {
+    resource function post authenticate(@http:Payload UserLogin UserLogin) returns http:Response|http:Unauthorized {
+        http:Response response = new();
+        UserID UserID = {UserName: UserLogin.UserName, Email: UserLogin.Email};
+        record {} | error User = getUser(UserID);
+        if (User is record {}) {
+            if (User.toJson().Item.Password.S == UserLogin.Password) {
+                io:println("Login success");
+                response.setJsonPayload({
+                    "status" : "Success",
+                    "token" : "jwt_token"
+                });
+                http:Cookie Cookie = new(name = "token", value = "adsfasdf;jk");
+                response.addCookie(Cookie);
+                response.statusCode = http:STATUS_OK;
+                return response;
+            } else {
+                io:println("Login failed");
+                return http:UNAUTHORIZED;
+            }
+        } else {
+            io:println("Login failed");
+            return http:UNAUTHORIZED;
+        }
+
+    }
 
     resource function post create(@http:Payload User User) returns json|http:InternalServerError {
         record {} response = {};
@@ -24,10 +51,10 @@ service /users on new http:Listener(9090) {
 
     resource function get all() returns json|http:InternalServerError {
         stream<anydata, error?>|error items = getAllUsers();
-        anydata [] itemsArray = [];
+        json [] itemsArray = [];
         if (items is stream<anydata, error?>) {
             error? e = items.forEach(function (anydata item) {
-                itemsArray.push(item);
+                itemsArray.push(item.toJson());
             });
 
             if (e is error) {
