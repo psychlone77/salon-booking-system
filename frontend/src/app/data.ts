@@ -1,0 +1,15 @@
+export const cities = [
+  {label: "Colombo", value: "colombo", description: "The commercial capital and largest city of Sri Lanka"},
+  {label: "Kandy", value: "kandy", description: "A major city in Sri Lanka, located in the Central Province"},
+  {label: "Galle", value: "galle", description: "A major city in Sri Lanka, situated on the southwestern tip"},
+  {label: "Jaffna", value: "jaffna", description: "A city on the northern tip of Sri Lanka"},
+  {label: "Trincomalee", value: "trincomalee", description: "A port city on the northeast coast of Sri Lanka"},
+  {label: "Anuradhapura", value: "anuradhapura", description: "A major city in Sri Lanka, known for its well-preserved ruins of an ancient Sri Lankan civilization"},
+  {label: "Negombo", value: "negombo", description: "A major city in Sri Lanka, located on the west coast"},
+  {label: "Batticaloa", value: "batticaloa", description: "A major city in the Eastern Province of Sri Lanka"},
+  {label: "Matara", value: "matara", description: "A major city in the Southern Province of Sri Lanka"},
+  {label: "Kurunegala", value: "kurunegala", description: "A major city in the North Western Province of Sri Lanka"},
+  {label: "Ratnapura", value: "ratnapura", description: "A major city in the Sabaragamuwa Province of Sri Lanka, known as the 'City of Gems'"},
+  {label: "Badulla", value: "badulla", description: "A major city in the Uva Province of Sri Lanka"},
+  {label: "Nuwara Eliya", value: "nuwara-eliya", description: "A city in the hill country of the Central Province of Sri Lanka, known for its temperate climate and picturesque landscape"},
+];
