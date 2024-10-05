@@ -3,8 +3,8 @@ import ballerinax/aws.dynamodb;
 
 dynamodb:ConnectionConfig amazonDynamodbConfig = {
         awsCredentials: {
-            accessKeyId: "AKIA3FLD32Q3TKYCQB5D",
-            secretAccessKey: "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"
+            accessKeyId: "accesskey",
+            secretAccessKey: "secretaccesskey"
         },
         region: "us-east-1"
     };
