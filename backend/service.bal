@@ -1,23 +1,97 @@
-import ballerina/http;
 import ballerina/io;
+import ballerinax/aws.dynamodb;
 
-# A service representing a network-accessible API
-# bound to port `9090`.
+dynamodb:ConnectionConfig amazonDynamodbConfig = {
+        awsCredentials: {
+            accessKeyId: "AKIA3FLD32Q3TKYCQB5D",
+            secretAccessKey: "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"
+        },
+        region: "us-east-1"
+    };
 
-public function main() {
-    // Print a message indicating the server is up
-    io:println("Server is up and running on http://localhost:9090");
-}
-service / on new http:Listener(9090) {
+public function createUser(User User) returns record{} | error {
 
-    # A resource for generating greetings
-    # + name - name as a string or nil
-    # + return - string name with hello message or error
-    resource function get greeting(string? name) returns string|error {
-        // Send a response back to the caller.
-        if name is () {
-            return error("name should not be empty!");
+    dynamodb:Client amazonDynamodbClient = check new (amazonDynamodbConfig);
+
+    dynamodb:ItemCreateInput createItemInput = {
+        TableName: "sbs_users",
+        Item: {
+            "UserName": {"S": User.UserName},
+            "Password": {"S": User.Password},
+            "Email": {"S": User.Email},
+            "FirstName": {"S": User.FirstName},
+            "LastName": {"S": User.LastName},
+            "PhoneNumber": {"S": User.PhoneNumber}
         }
-        return string `Hello, ${name}`;
-    }
+    };
+    dynamodb:ItemDescription createItemResult = check amazonDynamodbClient->createItem(createItemInput);
+    io:println("Added item: ", createItemResult);
+    return createItemResult;
 }
+
+public function getUser(UserID UserID) returns record{} | error {
+    dynamodb:Client amazonDynamodbClient = check new (amazonDynamodbConfig);
+
+    dynamodb:ItemGetInput getItemInput = {
+        TableName: "sbs_users",
+        Key: {
+            "UserName": {"S": UserID.UserName},
+            "Email": {"S": UserID.Email}
+        }
+    };
+    dynamodb:ItemGetOutput getItemResult = check amazonDynamodbClient->getItem(getItemInput);
+    io:println("Item: ", getItemResult);
+    return getItemResult;
+}
+
+public function updateUser(User User) returns record{} | error {
+    dynamodb:Client amazonDynamodbClient = check new (amazonDynamodbConfig);
+
+    dynamodb:ItemUpdateInput updateItemInput = {
+        TableName: "sbs_users",
+        Key: {
+            "UserName": {"S": User.UserName},
+            "Email": {"S": User.Email}
+        },
+        UpdateExpression: "SET FirstName = :fn, LastName = :ln, PhoneNumber = :pn, Password = :pw",
+        ExpressionAttributeValues: {
+            ":fn": {"S": User.FirstName},
+            ":ln": {"S": User.LastName},
+            ":pn": {"S": User.PhoneNumber},
+            ":pw": {"S": User.Password}
+        }
+    };
+    dynamodb:ItemDescription updateItemResult = check amazonDynamodbClient->updateItem(updateItemInput);
+    io:println("Updated item: ", updateItemResult);
+    return updateItemResult;
+}
+
+public function deleteUser(UserID UserID) returns record{} | error {
+    dynamodb:Client amazonDynamodbClient = check new (amazonDynamodbConfig);
+
+    dynamodb:ItemDeleteInput deleteItemInput = {
+        TableName: "sbs_users",
+        Key: {
+            "UserName": {"S": UserID.UserName},
+            "Email": {"S": UserID.Email}
+        }
+    };
+    dynamodb:ItemDescription deleteItemResult = check amazonDynamodbClient->deleteItem(deleteItemInput);
+    io:println("Deleted item: ", deleteItemResult);
+    return deleteItemResult;
+
+}
+
+public function getAllUsers() returns stream<anydata, error?>|error {
+    dynamodb:Client amazonDynamodbClient = check new (amazonDynamodbConfig);
+
+    dynamodb:ScanInput scanInput = {
+        TableName: "sbs_users"
+    };
+    stream<dynamodb:ScanOutput, error?>|error scanResult = check amazonDynamodbClient->scan(scanInput);
+    // io:println("Items: ", scanResult);
+    
+    return scanResult;
+
+}
+
