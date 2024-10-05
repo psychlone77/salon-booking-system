@@ -85,16 +85,20 @@ public function deleteUser(UserID UserID) returns record{} | error {
 
 }
 
-public function getAllUsers() returns stream<anydata, error?>|error {
-    dynamodb:Client amazonDynamodbClient = check new (amazonDynamodbConfig);
+public function getAllUsers() returns json[] {
+    dynamodb:Client|error amazonDynamodbClient = new (amazonDynamodbConfig);
 
-    dynamodb:ScanInput scanInput = {
-        TableName: "sbs_users"
-    };
-    stream<dynamodb:ScanOutput, error?>|error scanResult = check amazonDynamodbClient->scan(scanInput);
-    // io:println("Items: ", scanResult);
-    
-    return scanResult;
-
+    if (amazonDynamodbClient is dynamodb:Client) {
+        dynamodb:ScanInput scanInput = {TableName: "sbs_users"};
+        stream<dynamodb:ScanOutput, error?>|error scanResult = amazonDynamodbClient->scan(scanInput);
+        if (scanResult is stream<dynamodb:ScanOutput, error?>) {
+            json[]|error list = from var item in scanResult
+                                select item.toJson();
+            if (list is json[]) {
+                return list;
+            }
+        }
+    }
+    return [];
 }
 
