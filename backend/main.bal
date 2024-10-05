@@ -50,19 +50,11 @@ service /users on new http:Listener(9090) {
     }
 
     resource function get all() returns json|http:InternalServerError {
-        stream<anydata, error?>|error items = getAllUsers();
-        json [] itemsArray = [];
-        if (items is stream<anydata, error?>) {
-            error? e = items.forEach(function (anydata item) {
-                itemsArray.push(item.toJson());
-            });
-
-            if (e is error) {
-                return itemsArray.toJson();
-            } else {
-                return itemsArray.toJson();
-            }
-            }
+        (json|error) [] response = [];
+        foreach json i in getAllUsers() {
+            response.push(i.Item);
+        }
+        return response.toBalString().toJson();
 
     }
 
