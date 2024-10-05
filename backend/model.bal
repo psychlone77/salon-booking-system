@@ -15,4 +15,8 @@ public type UserID record {|
     string Email;
 |};
 
-
+public type UserLogin record {|
+    string UserName;
+    string Email;
+    string Password;
+|};
