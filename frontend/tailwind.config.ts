@@ -16,7 +16,9 @@ const config: Config = {
         primary: "var(--primary)",
         secondary: "var(--secondary)",
         tertiary: "var(--tertiary)",
+        accent: "var(--accent)",
         text: "var(--text)",
+        grey: "var(--grey)",
       },
     },
     fontFamily: {

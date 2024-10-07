@@ -3,6 +3,8 @@ import localFont from "next/font/local";
 import "./globals.css";
 import { Providers } from "./providers";
 import CustomNavbar from "@/components/CustomNavbar";
+import { Suspense } from "react";
+import { Spinner } from "@nextui-org/react";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -19,7 +21,9 @@ export default function RootLayout({
       <body>
         <Providers>
           <CustomNavbar />
-          {children}
+          <Suspense fallback={<Spinner />}>
+            <div className="mt-16">{children}</div>
+          </Suspense>
         </Providers>
       </body>
     </html>

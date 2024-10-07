@@ -1,7 +1,12 @@
+"use client";
+
 import React from "react";
 import { Navbar, NavbarBrand, NavbarContent, NavbarItem, Link, Button } from "@nextui-org/react";
+import { useRouter } from "next/navigation";
 
 const CustomNavbar: React.FC = () => {
+  const router = useRouter();
+
   return (
     <Navbar className="fixed font-serif bg-tertiary" position="static" shouldHideOnScroll={true}>
       <NavbarBrand>
@@ -30,9 +35,9 @@ const CustomNavbar: React.FC = () => {
           <Link href="/login">Login</Link>
         </NavbarItem>
         <NavbarItem>
-          <Button color="primary" href="#">
+            <Button color="primary" onPress={() => router.push("/signup")}>
             Sign Up
-          </Button>
+            </Button>
         </NavbarItem>
       </NavbarContent>
     </Navbar>
