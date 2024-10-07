@@ -1,23 +1,104 @@
-import ballerina/http;
 import ballerina/io;
+import ballerinax/aws.dynamodb;
 
-# A service representing a network-accessible API
-# bound to port `9090`.
+configurable string ACCESS_KEY_ID = ?;
+configurable string SECRET_ACCESS_KEY = ?;
 
-public function main() {
-    // Print a message indicating the server is up
-    io:println("Server is up and running on http://localhost:9090");
-}
-service / on new http:Listener(9090) {
+dynamodb:ConnectionConfig amazonDynamodbConfig = {
+        awsCredentials: {
+            accessKeyId: ACCESS_KEY_ID,
+            secretAccessKey: SECRET_ACCESS_KEY
+        },
+        region: "us-east-1"
+    };
 
-    # A resource for generating greetings
-    # + name - name as a string or nil
-    # + return - string name with hello message or error
-    resource function get greeting(string? name) returns string|error {
-        // Send a response back to the caller.
-        if name is () {
-            return error("name should not be empty!");
+public function createUser(User User) returns record{} | error {
+
+    dynamodb:Client amazonDynamodbClient = check new (amazonDynamodbConfig);
+
+    dynamodb:ItemCreateInput createItemInput = {
+        TableName: "sbs_users",
+        Item: {
+            "UserName": {"S": User.UserName},
+            "Password": {"S": User.Password},
+            "Email": {"S": User.Email},
+            "FirstName": {"S": User.FirstName},
+            "LastName": {"S": User.LastName},
+            "PhoneNumber": {"S": User.PhoneNumber}
         }
-        return string `Hello, ${name}`;
-    }
+    };
+    dynamodb:ItemDescription createItemResult = check amazonDynamodbClient->createItem(createItemInput);
+    io:println("Added item: ", createItemResult);
+    return createItemResult;
 }
+
+public function getUser(UserID UserID) returns record{} | error {
+    dynamodb:Client amazonDynamodbClient = check new (amazonDynamodbConfig);
+
+    dynamodb:ItemGetInput getItemInput = {
+        TableName: "sbs_users",
+        Key: {
+            "UserName": {"S": UserID.UserName},
+            "Email": {"S": UserID.Email}
+        }
+    };
+    dynamodb:ItemGetOutput getItemResult = check amazonDynamodbClient->getItem(getItemInput);
+    io:println("Item: ", getItemResult);
+    return getItemResult;
+}
+
+public function updateUser(User User) returns record{} | error {
+    dynamodb:Client amazonDynamodbClient = check new (amazonDynamodbConfig);
+
+    dynamodb:ItemUpdateInput updateItemInput = {
+        TableName: "sbs_users",
+        Key: {
+            "UserName": {"S": User.UserName},
+            "Email": {"S": User.Email}
+        },
+        UpdateExpression: "SET FirstName = :fn, LastName = :ln, PhoneNumber = :pn, Password = :pw",
+        ExpressionAttributeValues: {
+            ":fn": {"S": User.FirstName},
+            ":ln": {"S": User.LastName},
+            ":pn": {"S": User.PhoneNumber},
+            ":pw": {"S": User.Password}
+        }
+    };
+    dynamodb:ItemDescription updateItemResult = check amazonDynamodbClient->updateItem(updateItemInput);
+    io:println("Updated item: ", updateItemResult);
+    return updateItemResult;
+}
+
+public function deleteUser(UserID UserID) returns record{} | error {
+    dynamodb:Client amazonDynamodbClient = check new (amazonDynamodbConfig);
+
+    dynamodb:ItemDeleteInput deleteItemInput = {
+        TableName: "sbs_users",
+        Key: {
+            "UserName": {"S": UserID.UserName},
+            "Email": {"S": UserID.Email}
+        }
+    };
+    dynamodb:ItemDescription deleteItemResult = check amazonDynamodbClient->deleteItem(deleteItemInput);
+    io:println("Deleted item: ", deleteItemResult);
+    return deleteItemResult;
+
+}
+
+public function getAllUsers() returns json[] {
+    dynamodb:Client|error amazonDynamodbClient = new (amazonDynamodbConfig);
+
+    if (amazonDynamodbClient is dynamodb:Client) {
+        dynamodb:ScanInput scanInput = {TableName: "sbs_users"};
+        stream<dynamodb:ScanOutput, error?>|error scanResult = amazonDynamodbClient->scan(scanInput);
+        if (scanResult is stream<dynamodb:ScanOutput, error?>) {
+            json[]|error list = from var item in scanResult
+                                select item.toJson();
+            if (list is json[]) {
+                return list;
+            }
+        }
+    }
+    return [];
+}
+
