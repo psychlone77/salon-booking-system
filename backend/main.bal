@@ -1,6 +1,9 @@
 import ballerina/io;
 import ballerina/http;
+import ballerina/crypto;
+import ballerina/jwt;
 import ballerina/persist as _;
+
 
 @http:ServiceConfig {
     cors: {
@@ -12,17 +15,25 @@ import ballerina/persist as _;
 service /users on new http:Listener(9090) {
     resource function post authenticate(@http:Payload UserLogin UserLogin) returns http:Response|http:Unauthorized {
         http:Response response = new();
-        UserID UserID = {UserName: UserLogin.UserName, Email: UserLogin.Email};
+        UserID UserID = {Email: UserLogin.Email};
         record {} | error User = getUser(UserID);
+        byte[] hash = crypto:hashSha512(UserLogin.Password.toBytes());
         if (User is record {}) {
-            if (User.toJson().Item.Password.S == UserLogin.Password) {
+            if (User.toJson().Item.Password.S == hash.toString()) {
                 io:println("Login success");
-                response.setJsonPayload({
-                    "status" : "Success",
-                    "token" : "jwt_token"
-                });
-                http:Cookie Cookie = new(name = "token", value = "adsfasdf;jk");
-                response.addCookie(Cookie);
+                jwt:IssuerConfig issuerConfig = {
+                    username: UserLogin.Email,
+                    issuer: "sbs",
+                    audience: "vEwzbcasJVQm1jVYHUHCjhxZ4tYa",
+                    expTime: 3600
+                };
+                string|error jwt = jwt:issue(issuerConfig);
+                
+                if (jwt is string) {
+                    response.setHeader("Authorization", "Bearer " + jwt);
+                    http:Cookie Cookie = new(name = "token", value = jwt);
+                    response.addCookie(Cookie);
+                }
                 response.statusCode = http:STATUS_OK;
                 return response;
             } else {
@@ -38,6 +49,8 @@ service /users on new http:Listener(9090) {
 
     resource function post create(@http:Payload User User) returns json|http:InternalServerError {
         record {} response = {};
+        byte[] hash = crypto:hashSha512(User.Password.toBytes());
+        User.Password = hash.toString();
         record {} | error NewUser = createUser(User);
         if (NewUser is record {}) {
             io:println("Item: ", NewUser);
