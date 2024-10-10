@@ -93,7 +93,8 @@ public function createSalon(Salon Salon) returns record{} | error {
             "Email": {"S": Salon.Email},
             "Password": {"S": Salon.Password},
             "SalonName": {"S": Salon.SalonName},
-            "Address": {"S": Salon.Address},
+            "Altitude": {"S": Salon.Altitude},
+            "Longtitude": {"S": Salon.Longtitude},
             "PhoneNumber": {"S": Salon.PhoneNumber},
             "Description": {"S": Salon.Description},
             "Image": {"S": Salon.Image}
@@ -122,10 +123,11 @@ public function updateSalon(Salon Salon) returns record{} | error {
         Key: {
             "Email": {"S": Salon.Email}
         },
-        UpdateExpression: "SET SalonName = :n, Address = :a, PhoneNumber = :pn, Description = :d, Image = :i, Password = :pw",
+        UpdateExpression: "SET SalonName = :n, Altitude = :a, Longtitude = :l, PhoneNumber = :pn, Description = :d, Image = :i, Password = :pw",
         ExpressionAttributeValues: {
             ":n": {"S": Salon.SalonName},
-            ":a": {"S": Salon.Address},
+            ":a": {"S": Salon.Altitude},
+            ":l": {"S": Salon.Longtitude},
             ":pn": {"S": Salon.PhoneNumber},
             ":d": {"S": Salon.Description},
             ":i": {"S": Salon.Image},
@@ -230,6 +232,25 @@ public function getBookingsByUser(string UserEmail) returns json[] {
         }
     }
     return [];
+}
+
+public function updateBooking(Booking Booking) returns record{} | error {
+    dynamodb:ItemUpdateInput updateItemInput = {
+        TableName: "sbs_booking",
+        Key: {
+            "BookingID": {"S": Booking.BookingID}
+        },
+        UpdateExpression: "SET BookingDate = :bd, BookingTime = :bt, BookingService = :bs, BookingStatus = :bst",
+        ExpressionAttributeValues: {
+            ":bd": {"S": Booking.BookingDate},
+            ":bt": {"S": Booking.BookingTime},
+            ":bs": {"S": Booking.BookingService},
+            ":bst": {"S": Booking.BookingStatus}
+        }
+    };
+    dynamodb:ItemDescription updateItemResult = check amazonDynamodbClient->updateItem(updateItemInput);
+    io:println("Updated item: ", updateItemResult);
+    return updateItemResult;
 }
 
 
