@@ -10,16 +10,14 @@ dynamodb:ConnectionConfig amazonDynamodbConfig = {
             secretAccessKey: SECRET_ACCESS_KEY
         },
         region: "us-east-1"
-    };
+};
+dynamodb:Client amazonDynamodbClient = check new (amazonDynamodbConfig);
+
 
 public function createUser(User User) returns record{} | error {
-
-    dynamodb:Client amazonDynamodbClient = check new (amazonDynamodbConfig);
-
     dynamodb:ItemCreateInput createItemInput = {
         TableName: "sbs_users",
         Item: {
-            "UserName": {"S": User.UserName},
             "Password": {"S": User.Password},
             "Email": {"S": User.Email},
             "FirstName": {"S": User.FirstName},
@@ -33,12 +31,9 @@ public function createUser(User User) returns record{} | error {
 }
 
 public function getUser(UserID UserID) returns record{} | error {
-    dynamodb:Client amazonDynamodbClient = check new (amazonDynamodbConfig);
-
     dynamodb:ItemGetInput getItemInput = {
         TableName: "sbs_users",
         Key: {
-            "UserName": {"S": UserID.UserName},
             "Email": {"S": UserID.Email}
         }
     };
@@ -48,12 +43,9 @@ public function getUser(UserID UserID) returns record{} | error {
 }
 
 public function updateUser(User User) returns record{} | error {
-    dynamodb:Client amazonDynamodbClient = check new (amazonDynamodbConfig);
-
     dynamodb:ItemUpdateInput updateItemInput = {
         TableName: "sbs_users",
         Key: {
-            "UserName": {"S": User.UserName},
             "Email": {"S": User.Email}
         },
         UpdateExpression: "SET FirstName = :fn, LastName = :ln, PhoneNumber = :pn, Password = :pw",
@@ -70,12 +62,9 @@ public function updateUser(User User) returns record{} | error {
 }
 
 public function deleteUser(UserID UserID) returns record{} | error {
-    dynamodb:Client amazonDynamodbClient = check new (amazonDynamodbConfig);
-
     dynamodb:ItemDeleteInput deleteItemInput = {
         TableName: "sbs_users",
         Key: {
-            "UserName": {"S": UserID.UserName},
             "Email": {"S": UserID.Email}
         }
     };
@@ -86,10 +75,7 @@ public function deleteUser(UserID UserID) returns record{} | error {
 }
 
 public function getAllUsers() returns json[] {
-    dynamodb:Client|error amazonDynamodbClient = new (amazonDynamodbConfig);
-
-    if (amazonDynamodbClient is dynamodb:Client) {
-        dynamodb:ScanInput scanInput = {TableName: "sbs_users"};
+    dynamodb:ScanInput scanInput = {TableName: "sbs_users"};
         stream<dynamodb:ScanOutput, error?>|error scanResult = amazonDynamodbClient->scan(scanInput);
         if (scanResult is stream<dynamodb:ScanOutput, error?>) {
             json[]|error list = from var item in scanResult
@@ -98,7 +84,6 @@ public function getAllUsers() returns json[] {
                 return list;
             }
         }
-    }
     return [];
 }
 
