@@ -21,7 +21,8 @@ public type Salon record {|
     string Email;
     string Password;
     string SalonName;
-    string Address;
+    string Altitude;
+    string Longtitude;
     string PhoneNumber;
     string Description;
     string Image;
