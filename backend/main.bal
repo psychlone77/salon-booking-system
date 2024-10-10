@@ -251,5 +251,18 @@ service / on new http:Listener(9090) {
         return response.toBalString().toJson();
 
     }
+    
+    resource function put bookings(@http:Payload Booking Booking) returns json|http:InternalServerError {
+        record {} response = {};
+        record {} | error NewBooking = updateBooking(Booking);
+        if (NewBooking is record {}) {
+            io:println("Item: ", NewBooking);
+            return NewBooking.toJson();
+        } else {
+            return response.toJson();
+
+        }
+
+    }
 
 }
